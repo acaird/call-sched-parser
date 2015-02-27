@@ -1,0 +1,23 @@
+#+TITLE: Call Schedule Parser
+#+OPTIONS: ':t ^:{} author:t toc:nil
+
+
+My wife's call schedule is sent out in a ridiculous Excel spreadsheet,
+which does no one any good.
+
+The Python script here parses it and prints out dates and names.  It
+has a few options which you can see with the =--help= option.
+
+The current list is below, but might be out of date.
+
+ | Option (short, long)          | Description                                             | Required |
+ |-------------------------------+---------------------------------------------------------+----------|
+ | -y YEAR, --year YEAR          | set the year for the calendar; defaults to this year    | no       |
+ | -m MONTH, --month MONTH       | set the month being parsed                              | yes      |
+ | -f FILE, --file FILE          | filename of xlsx file to be read                        | yes      |
+ | -p PERSON, --person PERSON    | filter results to only this person                      | no       |
+ | -s [{0,1}], --summary [{0,1}] | print summary stats for number of calls; defaults to no | no       |
+
+As an example of using the Python =xlrd= module, this is probably OK;
+as a useful script for anyone besides me, it probably isn't OK.  Why
+they can't just use a Google calendar is beyond me.
