@@ -23,3 +23,12 @@ The current list is below, but might be out of date.
 As an example of using the Python =xlrd= module, this is probably OK;
 as a useful script for anyone besides me, it probably isn't OK.  Why
 they can't just use a Google calendar is beyond me.
+
+This couldn't be too much more fragile; one change in the spreadsheet
+by someone's administrative assistant and the whole thing goes to
+bits.  Much like an old car, if you can't work on this, you probably
+shouldn't be driving it.
+
+This requires two extra packages:
+ - [[http://icalendar.readthedocs.org/en/latest/][icalendar]] (=pip install icalendar=)
+ - [[https://pypi.python.org/pypi/xlrd][xlrd]] (=pip install xlrd=)
