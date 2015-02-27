@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     for m in sorted(sched):
         if search(args.person,sched[m]):
-            print str(m).split()[0],sched[m]
+            print m.strftime('%a'),str(m).split()[0],sched[m]
 
     # print the summary, if it was requested
     if args.summary:
