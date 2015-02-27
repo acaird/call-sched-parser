@@ -1,6 +1,8 @@
 import xlrd
-import re
+from icalendar import Calendar, Event
+from re import search
 from datetime import datetime, date, time
+
 import argparse
 
 def readXLcalFiles (file,month, year):
@@ -36,7 +38,7 @@ def readXLcalFiles (file,month, year):
                         schedDate = "{0}-{1}-{2}".format(year,month,int(m[0])) # format the date
                         schedDate = datetime.strptime(schedDate, "%Y-%m-%d")   # make it a Python date object
                         if schedDate in sched:                                 # don't overwrite existing data
-                            if m[1] and not re.search('Residents',m[1]):       # if there's data and it's not 'Residents'
+                            if m[1] and not search('Residents',m[1]):       # if there's data and it's not 'Residents'
                                 sched[schedDate] = sched[schedDate] +"/"+ m[1] # added to existing with a "/"
                         else:                                                  # or else there is no existing data
                             sched[schedDate] = m[1]
@@ -50,7 +52,7 @@ def getCallsPerPerson(sched):
     person = {}
     for m in sched:
         p = sched[m]
-        if (re.search('/',p)):
+        if (search('/',p)):
             p = p.split('/')[1]
             p = p.split()[0]
 
@@ -61,6 +63,22 @@ def getCallsPerPerson(sched):
 
     return(person)
 
+def writeICS(file,message,sched):
+
+    ical = Calendar()
+
+    for m in sorted(sched):
+        event=Event()
+        if search(args.person,sched[m]):
+            event.add('summary',message+sched[m])
+            event.add('dtstart',m)
+            ical.add_component(event)
+
+    f = open(file,"wb")
+    f.write(ical.to_ical(ical))
+    f.close
+
+    #print ical.to_ical(ical)
 
 if __name__ == '__main__':
 
@@ -75,18 +93,28 @@ if __name__ == '__main__':
                          help="filename of xlsx file to be read")
     parser.add_argument ("-p", "--person", default='',
                          help="filter results to only this person")
+    parser.add_argument ("-c", "--calendarfile",
+                         help="filename of calendar (ics) file to write")
     parser.add_argument ("-s", "--summary", type=int, choices=[0,1],
 		     nargs='?', const=1,
 		     help="print summary stats for number of calls")
+    parser.add_argument ("-t", "--text", default='',
+                         help="extra text to prepent to the iCal event")
     args = parser.parse_args()
 
     sched = readXLcalFiles(args.file,args.month, args.year)
 
     for m in sorted(sched):
-        if re.search(args.person,sched[m]):
+        if search(args.person,sched[m]):
             print str(m).split()[0],sched[m]
-    if (args.summary):
+    if args.summary:
         callsPerPerson = getCallsPerPerson(sched)
         print "-"*50
         for m in sorted(callsPerPerson):
             print "{0:>9s}: {1:2d}".format(m,callsPerPerson[m])
+    if args.calendarfile:
+        calfilename = args.calendarfile
+        if calfilename.split('.')[-1] != 'ics':
+            calfilename = calfilename+'.ics'
+        print "Writing calendar file to",calfilename
+        writeICS(calfilename,args.text,sched)
