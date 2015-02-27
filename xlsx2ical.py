@@ -28,22 +28,20 @@ def readXLcalFiles (file,month, year):
                 cell_value = worksheet.cell_value(rowIndex, colIndex)
                 if cell_value == 'Residents':    # let's assume the calendar always ends with a
                     inCalendarSection = False    # list of residents
-            if max([worksheet.cell_type(rowIndex, m) for m in range (num_cols+1)]) == 2:
+            if max([worksheet.cell_type(rowIndex, m) for m in range (num_cols+1)]) == 2:  # some numbers, must be dates (obv.)
                 dates = [worksheet.cell_value(rowIndex, m) for m in range (num_cols+1)]
-            elif max([worksheet.cell_type(rowIndex, m) for m in range (num_cols+1)]) == 1:
+            elif max([worksheet.cell_type(rowIndex, m) for m in range (num_cols+1)]) == 1: # all text, must be names (obv.)
                 people = [worksheet.cell_value(rowIndex, m) for m in range (num_cols+1)]
 
                 for m in zip(dates,people):
                     if m[0]:  # skip empty cells
-                        schedDate = "{0}-{1}-{2}".format(year,month,int(m[0])) # format the date
-                        schedDate = datetime.strptime(schedDate, "%Y-%m-%d")   # make it a Python date object
-                        if schedDate in sched:                                 # don't overwrite existing data
+                        schedDate = "{0}-{1}-{2}".format(year,month,int(m[0])) # format the date,
+                        schedDate = datetime.strptime(schedDate, "%Y-%m-%d")   # make it a Python date object.
+                        if schedDate in sched:                                 # don't overwrite existing data,
                             if m[1] and not search('Residents',m[1]):       # if there's data and it's not 'Residents'
-                                sched[schedDate] = sched[schedDate] +"/"+ m[1] # added to existing with a "/"
+                                sched[schedDate] = sched[schedDate] +"/"+ m[1] # added it to existing data with a "/"
                         else:                                                  # or else there is no existing data
-                            sched[schedDate] = m[1]
-
-
+                            sched[schedDate] = m[1]                            # and what we have is it.
 
     return(sched)
 
@@ -52,9 +50,9 @@ def getCallsPerPerson(sched):
     person = {}
     for m in sched:
         p = sched[m]
-        if (search('/',p)):
-            p = p.split('/')[1]
-            p = p.split()[0]
+        if (search('/',p)):     # for shared calls, we joined them with a '/', now
+            p = p.split('/')[1] # split them on the '/' and take the 2nd field
+            p = p.split()[0]    # and split that on a space and take the 1st field
 
         if p in person:
             person[p] += 1
@@ -63,26 +61,26 @@ def getCallsPerPerson(sched):
 
     return(person)
 
+
 def writeICS(file,message,sched):
 
     ical = Calendar()
 
     for m in sorted(sched):
         event=Event()
-        if search(args.person,sched[m]):
-            event.add('summary',message+sched[m])
-            event.add('dtstart',m)
-            ical.add_component(event)
+        if search(args.person,sched[m]):   # in case we are filtering, only work on 'args.person'
+            event.add('summary',message+sched[m])  # add a summary
+            event.add('dtstart',m)                 # add a start (this makes a midnight event, though)
+            ical.add_component(event)              # put the event into the calendar
 
     f = open(file,"wb")
-    f.write(ical.to_ical(ical))
+    f.write(ical.to_ical(ical))   # write out our calendar to a nicely formatted .ics file
     f.close
 
-    #print ical.to_ical(ical)
 
 if __name__ == '__main__':
 
-    year = datetime.now().year
+    year = datetime.now().year  # to use as the default year
 
     parser = argparse.ArgumentParser()
     parser.add_argument ("-y", "--year", type=int, default=year,
@@ -107,14 +105,18 @@ if __name__ == '__main__':
     for m in sorted(sched):
         if search(args.person,sched[m]):
             print str(m).split()[0],sched[m]
+
+    # print the summary, if it was requested
     if args.summary:
         callsPerPerson = getCallsPerPerson(sched)
         print "-"*50
         for m in sorted(callsPerPerson):
             print "{0:>9s}: {1:2d}".format(m,callsPerPerson[m])
+
+    # write out an ICS file if we have a filename
     if args.calendarfile:
         calfilename = args.calendarfile
-        if calfilename.split('.')[-1] != 'ics':
-            calfilename = calfilename+'.ics'
-        print "Writing calendar file to",calfilename
+        if calfilename.split('.')[-1] != 'ics':  # if the filename doesn't end in '.ics'
+            calfilename = calfilename+'.ics'     # then it does now.
+        print "Writing calendar file to",calfilename  # verbosity! to the screen!
         writeICS(calfilename,args.text,sched)
