@@ -70,7 +70,10 @@ def writeICS(file,message,sched):
         event=Event()
         if search(args.person,sched[m]):   # in case we are filtering, only work on 'args.person'
             event.add('summary',message+sched[m])  # add a summary
-            event.add('dtstart',m)                 # add a start (this makes a midnight event, though)
+            event.add('dtstart',m.date())          # add a start (just the date makes it
+                                                   # an all-day event, see
+                                                   # http://stackoverflow.com/questions/1716237/single-day-all-day-appointments-in-ics-files
+
             ical.add_component(event)              # put the event into the calendar
 
     f = open(file,"wb")
